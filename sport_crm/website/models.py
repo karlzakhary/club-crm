@@ -5,6 +5,11 @@ from django.db import models
 import uuid
 # from django.conf import settings
 
+LEVEL_CHOICES = (
+                ("A", "A"),
+                ("B", "B"),
+                ("C", "C"),
+                    )
 
 # Models
 class Trainer(models.Model):
@@ -15,27 +20,27 @@ class Trainer(models.Model):
 class Class(models.Model):
     name = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, related_name="trainers", on_delete=models.CASCADE)
-    LEVEL_CHOICES = (
-                ("A", "A"),
-                ("B", "B"),
-                ("C", "C"),
-                    )
-    level = models.CharField(max_length=1, choices=LEVEL_CHOICES)
+    level = models.CharField(max_length=1, choices=LEVEL_CHOICES, null=True, blank=True)
 
     def __str__(self):
         return self.name
 
 class Trainee(models.Model):
     name = models.CharField(max_length=255)
-    level = models.CharField(max_length=255, null=True, blank=True)
     phone_number = models.CharField(max_length=255)
-    date_of = models.CharField(max_length=255, null=True, blank=True)
+    registered_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     reference = models.CharField(max_length=100, null=True, blank=True, unique=True)
     group = models.ForeignKey(Class, related_name="trainees", on_delete=models.CASCADE)
-
-    def __init__(self):
-        super(Trainee, self).__init__()
-        self.ref = str(uuid.uuid4())
+    level = models.CharField(max_length=1, choices=LEVEL_CHOICES, null=True, blank=True)
+    #
+    # def __init__(self, *args, **kwargs):
+    #     self.reference = str(uuid.uuid4())
+    #     super(Trainee, self).__init__(self, *args, **kwargs)
+    def save(self, *args, **kwargs):
+        if not self.reference:
+            self.reference = str(uuid.uuid4())[:5]
+            super(Trainee, self).save(*args, **kwargs)
+            return Trainee
 
     def __unicode__(self):
         return self.name
