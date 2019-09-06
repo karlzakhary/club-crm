@@ -1,1 +1,1 @@
-web: gunicorn sport_crm/sport_crm.wsgi
+web: gunicorn --pythonpath sport_crm sport_crm.wsgi
