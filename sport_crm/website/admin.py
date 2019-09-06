@@ -5,7 +5,8 @@ from django.contrib import admin
 from nested_inline.admin import NestedStackedInline, NestedModelAdmin
 from django.urls import resolve
 from .models import *
-
+from django.db.models import Q
+from datetime import date
 admin.site.site_header = "Winner Academy Administration"
 
 
@@ -33,11 +34,13 @@ class AttendanceRecordAdminInline(admin.TabularInline):
     def get_formset(self, request, obj=None, **kwargs):
 
         self.parent_obj = None
+        self.registered = None
         if obj is None:
             return super(AttendanceRecordAdminInline, self).get_formset(request, obj, **kwargs)
         else:
             self.parent_obj = obj
-        extra = obj.trainees.all().count()
+            self.registered = AttendanceRecord.objects.filter(Q(registered_at=date.today()) |Q(group=self.parent_obj))
+        extra = obj.trainees.all().count() - self.registered.count()
         # registered = obj.trainees.get()
         kwargs['extra'] = extra
 
@@ -55,6 +58,7 @@ class AttendanceRecordAdminInline(admin.TabularInline):
             group = self.parent_obj
             if group:
                 kwargs["queryset"] = Trainee.objects.filter(group=group)
+                # .difference(self.parent_obj.trainees.all())
 
         return super(AttendanceRecordAdminInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -66,25 +70,28 @@ class TraineeAdmin(admin.ModelAdmin):
     # form = TraineeAdminForm
     list_display = ('name', 'phone_number', 'group', 'level', 'reference')
     search_fields = ('reference',)
-    inlines = (AttendanceRecordAdminInline,)
+    # inlines = (AttendanceRecordAdminInline,)
 
-    # def __init__(self, *args, **kwargs):
+     # def __init__(self, *args, **kwargs):
     #     super(TraineeAdmin, self).__init__(*args, **kwargs)
     #     self.reference = str(uuid.uuid4())
+    
+    # def get_object(self, request, object_id):
+    #     self.object = super(TraineeAdmin, self).get_object(request, object_id)
+    #     return self.object
 
-
-    # def get_parent_object_from_request(self, request):
+# def get_parent_object_from_request(self, request):
     #     resolved = resolve(request.path_info)
     #     if resolved.args:
     #         return self.parent_model.objects.get(pk=resolved.args[0])
     #     return None
-    #
+    # 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
     #     if db_field.name == "group":
     #         trainee = self.get_parent_object_from_request(request)
     #         if trainee:
     #             kwargs["queryset"] = Class.objects.filter(level=trainee.level)
-    #
+    #     
     #     return super(TraineeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 

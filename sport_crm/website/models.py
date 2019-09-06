@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 # from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 import uuid
+from django.core.exceptions import ValidationError
 # from django.conf import settings
 
 LEVEL_CHOICES = (
@@ -55,8 +56,12 @@ class Trainee(models.Model):
             super(Trainee, self).save(*args, **kwargs)
             return Trainee
 
-    def __unicode__(self):
-        return self.name
+    def clean(self):
+        if self.level != self.group.level:
+            raise ValidationError('Chosen group\'s level doesn\'t match with trainee level')
+
+    # def __unicode__(self):
+    #     return self.name
 
     def __str__(self):
         return "{}, id:{}".format(self.name,self.reference)
