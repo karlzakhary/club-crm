@@ -6,7 +6,7 @@ from nested_inline.admin import NestedStackedInline, NestedModelAdmin
 from django.urls import resolve
 from .models import *
 
-admin.site.site_header = "Swimming School Administration"
+admin.site.site_header = "Winner Academy Administration"
 
 
 # class TraineeAdminForm(forms.ModelForm):
