@@ -1,1 +1,1 @@
-web: gunicorn application.wsgi
+web: gunicorn sport_crm.wsgi.application
