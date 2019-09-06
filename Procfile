@@ -1,1 +1,1 @@
-web: gunicorn sport_crm.application
+web: gunicorn sport_crm
