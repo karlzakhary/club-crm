@@ -23,7 +23,7 @@ from rest_framework import routers
 
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
+    url(r'^', admin.site.urls),
     url(r'^api/', include('website.urls')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -32,9 +32,11 @@ class AttendanceRecordAdminInline(admin.TabularInline):
 
     def get_formset(self, request, obj=None, **kwargs):
 
+        self.parent_obj = None
         if obj is None:
             return super(AttendanceRecordAdminInline, self).get_formset(request, obj, **kwargs)
-        self.parent_obj = obj
+        else:
+            self.parent_obj = obj
         extra = obj.trainees.all().count()
         # registered = obj.trainees.get()
         kwargs['extra'] = extra
