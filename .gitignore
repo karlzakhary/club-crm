@@ -7,3 +7,4 @@ sp_backend/media/*
 sp_backend/static/*
 sp_backend/templates/*
 .idea/
+.vscode/
