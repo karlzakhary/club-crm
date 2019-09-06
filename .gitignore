@@ -1,0 +1,9 @@
+venv/
+.env
+*.pyc
+db.sqlite3
+sp_backend/media
+sp_backend/media/*
+sp_backend/static/*
+sp_backend/templates/*
+.idea/
