@@ -69,7 +69,7 @@ class TraineeAdmin(admin.ModelAdmin):
     exclude = ('reference', )
     # form = TraineeAdminForm
     list_display = ('name', 'phone_number', 'group', 'level', 'reference')
-    search_fields = ('reference',)
+    search_fields = ('reference','group__trainer__reference')
     # inlines = (AttendanceRecordAdminInline,)
 
      # def __init__(self, *args, **kwargs):
@@ -97,7 +97,9 @@ class TraineeAdmin(admin.ModelAdmin):
 
 class TrainerAdmin(admin.ModelAdmin):
     model = Trainer
-
+    exclude = ('reference', )
+    readonly_fields = ('reference',)
+    list_display = ('name', 'phone_number', 'reference')
 
 class ClassAdmin(admin.ModelAdmin):
     model = Class
