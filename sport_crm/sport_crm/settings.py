@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'oauth2_provider',
     'ckeditor',
     'django_extensions',
+    'recurrence',
 
     'website',
 ]
@@ -95,24 +96,24 @@ WSGI_APPLICATION = 'sport_crm.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
-# if os.environ.get('MYSQL_PASSWORD', None):
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.mysql',
-#             'NAME': os.environ.get('MYSQL_DATABASE', 'mediterraneantour'),
-#             'USER': os.environ.get('MYSQL_USER', 'root'),
-#             'PASSWORD': os.environ.get('MYSQL_PASSWORD'),
-#             'HOST': 'localhost',
-#             'PORT': '3306'
-#         }
-#     }
-# else:
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+if os.environ.get('MYSQL_PASSWORD', None):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('MYSQL_DATABASE', 'mediterraneantour'),
+            'USER': os.environ.get('MYSQL_USER', 'root'),
+            'PASSWORD': os.environ.get('MYSQL_PASSWORD'),
+            'HOST': 'localhost',
+            'PORT': '3306'
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators

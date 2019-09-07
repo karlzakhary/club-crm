@@ -7,29 +7,17 @@ from django.urls import resolve
 from .models import *
 from django.db.models import Q
 from datetime import date
+from django.contrib import messages
+from django.forms.models import BaseInlineFormSet
+
 admin.site.site_header = "Winner Academy Administration"
 
 
-# class TraineeAdminForm(forms.ModelForm):
-#     class Meta:
-#         model = Trainee
-#         fields = '__all__'
-#     def __init__(self, *args, **kwargs):
-#         super(TraineeAdminForm, self).__init__(*args, **kwargs)
-#         # import pdb;pdb.set_trace()
-#         trainee_instance = self.instance
-#         # if trainee_instance.id:
-#         self.fields['group'] = forms.ModelChoiceField(
-#             queryset=Class.objects.filter(level=trainee_instance.level))
 
 class AttendanceRecordAdminInline(admin.TabularInline):
     extra = 0
     model = AttendanceRecord
     max_num = 6
-
-    # def __init__(self, obj=None, *args, **kwargs):
-    #     super(AttendanceRecordAdminInline, self).__init__(*args, **kwargs)
-    #     self.fields['trainee'].queryset = Trainee.objects.filter(group=obj)
 
     def get_formset(self, request, obj=None, **kwargs):
 
@@ -43,15 +31,13 @@ class AttendanceRecordAdminInline(admin.TabularInline):
         extra = obj.trainees.all().count() - self.registered.count()
         # registered = obj.trainees.get()
         kwargs['extra'] = extra
-
+        kwargs['max_num'] = obj.capacity
         return super(AttendanceRecordAdminInline, self).get_formset(request, obj, **kwargs)
 
-    # def get_parent_object_from_request(self, request):
-    #     resolved = resolve(request.path_info)
-    #
-    #     if resolved.args:
-    #         return self.parent_model.objects.get(pk=resolved.args[0])
-    #     return None
+    def queryset(self, request):
+        qs = super(AttendanceRecordAdminInline, self).get_queryset(request).filter(registered_at=date.today())
+        return qs.filter(registered_at=date.today(), group=self.parent_obj)
+
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "trainee":
@@ -67,32 +53,21 @@ class AttendanceRecordAdminInline(admin.TabularInline):
 class TraineeAdmin(admin.ModelAdmin):
     model = Trainee
     exclude = ('reference', )
-    # form = TraineeAdminForm
     list_display = ('name', 'phone_number', 'group', 'level', 'reference')
     search_fields = ('reference','group__trainer__reference')
     # inlines = (AttendanceRecordAdminInline,)
-
-     # def __init__(self, *args, **kwargs):
-    #     super(TraineeAdmin, self).__init__(*args, **kwargs)
-    #     self.reference = str(uuid.uuid4())
     
     # def get_object(self, request, object_id):
     #     self.object = super(TraineeAdmin, self).get_object(request, object_id)
     #     return self.object
 
-# def get_parent_object_from_request(self, request):
-    #     resolved = resolve(request.path_info)
-    #     if resolved.args:
-    #         return self.parent_model.objects.get(pk=resolved.args[0])
-    #     return None
-    # 
-    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
-    #     if db_field.name == "group":
-    #         trainee = self.get_parent_object_from_request(request)
-    #         if trainee:
-    #             kwargs["queryset"] = Class.objects.filter(level=trainee.level)
-    #     
-    #     return super(TraineeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    # def get_parent_object_from_request(self, request):
+    #         resolved = resolve(request.path_info)
+    #         if resolved.args:
+    #             return self.parent_model.objects.get(pk=resolved.args[0])
+    #         return None
+    
+
 
 
 class TrainerAdmin(admin.ModelAdmin):
@@ -104,11 +79,25 @@ class TrainerAdmin(admin.ModelAdmin):
 class ClassAdmin(admin.ModelAdmin):
     model = Class
     inlines = (AttendanceRecordAdminInline,)
+    readonly_fields = ('price',)
+    list_display = ('name', 'trainer', 'days', 'until', 'level', 'capacity', 'season',)
 
+    def message_user(self, *args):
+        pass
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for instance in instances:
+            if AttendanceRecord.objects.filter(trainee=instance.trainee,registered_at=date.today()).exists():
+                return messages.error(request, "A trainee attendance in missing")
+            else:
+                instance.save()
+        return messages.success(request, "Attendance is saved correctly!")
+        formset.save_m2m()
 
 class AttendanceRecordAdmin(admin.ModelAdmin):
     model = AttendanceRecord
-
+    list_display = ('trainee','group','registered_at',)
 
 admin.site.register(Trainee, TraineeAdmin)
 admin.site.register(Trainer, TrainerAdmin)
