@@ -20,23 +20,23 @@ class AttendanceRecordAdminInline(admin.TabularInline):
     max_num = 6
 
     def get_formset(self, request, obj=None, **kwargs):
-
+        
         self.parent_obj = None
         self.registered = None
         if obj is None:
             return super(AttendanceRecordAdminInline, self).get_formset(request, obj, **kwargs)
         else:
             self.parent_obj = obj
-            self.registered = AttendanceRecord.objects.filter(Q(registered_at=date.today()) |Q(group=self.parent_obj))
+            self.registered = AttendanceRecord.objects.filter(Q(registered_at=date.today()) & Q(group=self.parent_obj))
         extra = obj.trainees.all().count() - self.registered.count()
         # registered = obj.trainees.get()
         kwargs['extra'] = extra
         kwargs['max_num'] = obj.capacity
         return super(AttendanceRecordAdminInline, self).get_formset(request, obj, **kwargs)
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         qs = super(AttendanceRecordAdminInline, self).get_queryset(request).filter(registered_at=date.today())
-        return qs.filter(registered_at=date.today(), group=self.parent_obj)
+        return qs
 
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -74,7 +74,8 @@ class TrainerAdmin(admin.ModelAdmin):
     model = Trainer
     exclude = ('reference', )
     readonly_fields = ('reference',)
-    list_display = ('name', 'phone_number', 'reference')
+    list_display = ('name', 'phone_number', 'reference', 'groups', )
+    search_fields = ('reference','name', 'phone_number', )
 
 class ClassAdmin(admin.ModelAdmin):
     model = Class
@@ -85,15 +86,19 @@ class ClassAdmin(admin.ModelAdmin):
     def message_user(self, *args):
         pass
 
-    def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=False)
-        for instance in instances:
-            if AttendanceRecord.objects.filter(trainee=instance.trainee,registered_at=date.today()).exists():
-                return messages.error(request, "A trainee attendance in missing")
-            else:
-                instance.save()
-        return messages.success(request, "Attendance is saved correctly!")
-        formset.save_m2m()
+    # def save_formset(self, request, form, formset, change):
+    #     instances = formset.save(commit=False)
+    #     for instance in instances:
+    #         similar_instance = AttendanceRecord.objects.get(trainee=instance.trainee,registered_at=date.today())
+    #         # import pdb;pdb.set_trace()
+    #         if similar_instance:
+    #             if similar_instance.registered_at == instance.registered_at:
+    #                 return messages.error(request, "A trainee attendance is duplicated")
+    #             else:
+    #                 instance.save()
+    #     formset.save_m2m()
+    #     return messages.success(request, "Attendance is saved correctly!")
+        
 
 class AttendanceRecordAdmin(admin.ModelAdmin):
     model = AttendanceRecord

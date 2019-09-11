@@ -38,6 +38,13 @@ class Trainer(models.Model):
                 self.reference = id_generator()
         super(Trainer, self).save()
 
+    @property
+    def groups(self):
+        groups = []
+        if self.trainers.all():
+            for group in self.trainers.all():
+                groups.append(group)
+        return groups
 
 class Class(models.Model):
 
@@ -128,7 +135,7 @@ class AttendanceRecord(models.Model):
         ('excuse', 'Excuse')
     )
     status = models.CharField(max_length=10, choices=ATTENDANCE_TYPES)
-    registered_at = models.DateField(auto_now_add=True, null=True, blank=True)
+    registered_at = models.DateField(null=True, blank=True)
     
     class Meta:
         unique_together = ('registered_at', 'trainee',)
@@ -136,3 +143,13 @@ class AttendanceRecord(models.Model):
     #     constraints = [
     #         models.UniqueConstraint(fields=['registered_at', 'trainee'], name='Single trainee per session')
     #     ]
+    def save(self):
+        if not self.registered_at:
+            self.registered_at = date.today()
+        super(AttendanceRecord, self).save()
+
+
+    def clean(self):
+        if not self.pk:
+            if AttendanceRecord.objects.filter(group=self.group, trainee=self.trainee, registered_at=date.today()).exists():
+                raise ValidationError('Duplicate Attendance Record!')
