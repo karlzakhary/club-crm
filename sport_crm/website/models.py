@@ -110,7 +110,7 @@ class Trainee(models.Model):
     registered_at = models.DateField(auto_now_add=True, null=True, blank=True)
     reference = models.CharField(max_length=5, null=True, blank=True, unique=True)
     group = models.ForeignKey(Class, related_name="trainees", on_delete=models.CASCADE)
-    level = models.CharField(max_length=1,  null=True, blank=True)
+    level = models.CharField(max_length=1,  choices=LEVEL_CHOICES, null=True, blank=True)
     club_member = models.BooleanField(default=False)
     #
     # def __init__(self, *args, **kwargs):
@@ -129,7 +129,6 @@ class Trainee(models.Model):
     def clean(self):
         # if self.level != self.group.level:
         #     raise ValidationError('Chosen group\'s level doesn\'t match with trainee level')
-        
         if self.group.capacity <= self.group.trainees.all().count():
             raise ValidationError('Chosen group\'s capacity is full')
 

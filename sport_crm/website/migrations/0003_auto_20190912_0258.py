@@ -35,9 +35,4 @@ class Migration(migrations.Migration):
             name='season',
             field=models.CharField(blank=True, choices=[('Winter', 'Winter'), ('Summer', 'Summer')], max_length=1),
         ),
-        migrations.AlterField(
-            model_name='trainee',
-            name='level',
-            field=models.CharField(blank=True, max_length=1, null=True),
-        ),
     ]
