@@ -51,8 +51,9 @@ class Class(models.Model):
     class Meta:
         verbose_name_plural = "Groups"
         verbose_name = "Group"
-
+    
     name = models.CharField(max_length=255)
+    started_at = models.DateField(null=True, blank=True)
     trainer = models.ForeignKey(Trainer, related_name="trainers", on_delete=models.CASCADE)
     level = models.CharField(max_length=1, choices=LEVEL_CHOICES, blank=True, null=True)
     recurrences = RecurrenceField(null=True)
@@ -63,7 +64,14 @@ class Class(models.Model):
                 (1 , 1),
                     )
     capacity = models.IntegerField(choices=CAPACITY_CHOICES, null = True, blank= True)
-    season = models.CharField(max_length=1, choices=LEVEL_CHOICES, blank=True)
+    SEASON_CHOICES = (
+        ('Winter', 'Winter'),    
+        ('Summer', 'Summer'),
+    )
+    
+    season = models.CharField(max_length=1, choices=SEASON_CHOICES, blank=True)
+    starts_at = models.TimeField(null=True, blank=True)
+    ends_at = models.TimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -86,6 +94,10 @@ class Class(models.Model):
             return self.recurrences.rrules[0].byday
 
     @property
+    def ratio(self):
+        return '{}/{}'.format(self.trainees.all().count(), self.capacity)
+
+    @property
     def until(self):
         if self.recurrences.rrules[0].until:
             datetimeobj = self.recurrences.rrules[0].until.strftime('%Y-%m-%d')
@@ -98,7 +110,8 @@ class Trainee(models.Model):
     registered_at = models.DateField(auto_now_add=True, null=True, blank=True)
     reference = models.CharField(max_length=5, null=True, blank=True, unique=True)
     group = models.ForeignKey(Class, related_name="trainees", on_delete=models.CASCADE)
-    level = models.CharField(max_length=1, choices=LEVEL_CHOICES, null=True, blank=True)
+    level = models.CharField(max_length=1,  null=True, blank=True)
+    club_member = models.BooleanField(default=False)
     #
     # def __init__(self, *args, **kwargs):
     #     self.reference = str(uuid.uuid4())
@@ -108,13 +121,14 @@ class Trainee(models.Model):
         if not self.reference:
             # Generate ID once, then check the db. If exists, keep trying.
             self.reference = id_generator()
+            self.level = self.group.level
             while Trainee.objects.filter(reference=self.reference).exists():
                 self.reference = id_generator()
         super(Trainee, self).save()
 
     def clean(self):
-        if self.level != self.group.level:
-            raise ValidationError('Chosen group\'s level doesn\'t match with trainee level')
+        # if self.level != self.group.level:
+        #     raise ValidationError('Chosen group\'s level doesn\'t match with trainee level')
         
         if self.group.capacity <= self.group.trainees.all().count():
             raise ValidationError('Chosen group\'s capacity is full')
@@ -136,7 +150,7 @@ class AttendanceRecord(models.Model):
     )
     status = models.CharField(max_length=10, choices=ATTENDANCE_TYPES)
     registered_at = models.DateField(null=True, blank=True)
-    
+
     class Meta:
         unique_together = ('registered_at', 'trainee',)
     # class Meta:
