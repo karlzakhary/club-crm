@@ -56,7 +56,7 @@ class AttendanceCreateView(FormView):
                 template = loader.get_template('showAttendance.html')
                 return HttpResponse(template.render(context, request))
             except IntegrityError as e:
-                form.add_error('status','Duplicate bitch')
+                form.add_error('status','Trainee has been signed in')
         return render(request, 'attendance.html', {'form': form})
 
 
