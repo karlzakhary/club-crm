@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Winner Academy Attendance</title>
+</head>
+<body>
+<h2>Enter the attendee code:</h2>
+
+
+<form method="post" novalidate action="">
+    {% csrf_token %}
+    <table>
+        <tr>
+            <td>Enter trainee code:</td>
+                {{ form }}
+            <!--<td><input type="text" name="reference"/></td>-->
+        </tr>
+
+        <tr>
+            <td>
+ 
+            </td>
+            <td>
+                <button>Submit Attendance</button>
+            </td>
+        </tr>
+    </table>
+</form>
+</body>
+</html>

@@ -9,6 +9,8 @@ from django.db.models import Q
 from datetime import date
 from django.contrib import messages
 from django.forms.models import BaseInlineFormSet
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
 
 admin.site.site_header = "Winner Academy Administration"
 
@@ -67,10 +69,13 @@ class ClassAdminInline(admin.TabularInline):
     extra = 0
     model = Class
     max_num = 6
-    readonly_fields = ('name', 'level', 'season', 'capacity', 'price', 'days', 'starts_at', 'ends_at',  )
+    readonly_fields = ('name', 'level', 'season', 'start_day', 'capacity', 'price', 'days', 'starts_at', 'ends_at',  )
     exclude = ('recurrences', )
 
     def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj):
         return False
 
 
@@ -129,11 +134,19 @@ class AttendanceRecordAdminInline(admin.TabularInline):
 
         return super(AttendanceRecordAdminInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
+class TrainerAdminInline(admin.StackedInline):
+    model = Trainer
+    can_delete = False
+    verbose_name_plural = 'trainer'
+    readonly_fields = ('reference', )
 
+# Define a new User admin
+class UserAdmin(BaseUserAdmin):
+    inlines = (TrainerAdminInline,)
 
 class TraineeAdmin(admin.ModelAdmin):
     model = Trainee
-    exclude = ('reference', )
+    readonly_fields = ('reference', )
     list_display = ('name', 'phone_number', 'group', 'level', 'reference')
     search_fields = ('reference','group__trainer__reference')
     # inlines = (AttendanceRecordAdminInline,)
@@ -155,16 +168,19 @@ class TrainerAdmin(admin.ModelAdmin):
     model = Trainer
     exclude = ('reference', )
     readonly_fields = ('reference',)
-    list_display = ('name', 'phone_number', 'reference', 'groups', )
-    search_fields = ('reference','name', 'phone_number', )
+    list_display = ('user', 'phone_number', 'reference', 'groups', )
+    search_fields = ('reference', 'phone_number', )
     inlines = (ClassAdminInline, )
+    
+    def has_add_permission(self, request, obj=None):
+        return False
 
 class ClassAdmin(admin.ModelAdmin):
     model = Class
     inlines = (TraineeAdminInline, AttendanceRecordAdminInline, )
     list_filter = (GroupsListFilter,)
-    readonly_fields = ('price',)
-    list_display = ('name', 'trainer', 'ratio', 'days', 'started_at', 'until', 'level', 'capacity', 'season',)
+    # readonly_fields = ('price',)
+    list_display = ('name', 'trainer', 'ratio', 'days', 'start_day', 'until', 'level', 'capacity', 'season',)
 
     def message_user(self, *args):
         pass
@@ -192,4 +208,5 @@ admin.site.register(Trainee, TraineeAdmin)
 admin.site.register(Trainer, TrainerAdmin)
 admin.site.register(Class, ClassAdmin)
 admin.site.register(AttendanceRecord, AttendanceRecordAdmin)
-
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
