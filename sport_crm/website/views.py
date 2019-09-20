@@ -12,9 +12,10 @@ from django.shortcuts import render
 from django.views.generic.edit import CreateView
 from django.db import IntegrityError
 from django.views.generic.edit import FormView
+from django.contrib.auth.decorators import login_required, permission_required
+from django.utils.decorators import method_decorator
 
-
-
+@method_decorator(login_required, name='dispatch')
 class AttendanceCreateView(FormView):
 
     def get(self, request, *args, **kwargs):
@@ -63,7 +64,7 @@ class AttendanceCreateView(FormView):
 
 
 # disabling csrf (cross site request forgery)
-
+@login_required(login_url='/admin/')
 @csrf_exempt
 def attendance(request):
     # if post request came

@@ -20,12 +20,12 @@ from django.conf import settings
 import website.views as views
 
 from rest_framework import routers
-
+from django.contrib.auth.decorators import login_required
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include('website.urls')),
     # url(r'^attendance/', views.attendance),
-    url('', views.AttendanceCreateView.as_view(), name='create'),
+    url('', login_required(views.AttendanceCreateView.as_view()), name='create'),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

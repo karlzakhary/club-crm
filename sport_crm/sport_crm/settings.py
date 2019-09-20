@@ -74,7 +74,7 @@ CSRF_COOKIE_SECURE = False
 
 ROOT_URLCONF = 'sport_crm.urls'
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-
+LOGIN_URL='/admin/'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
