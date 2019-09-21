@@ -14,6 +14,8 @@ from django.db import IntegrityError
 from django.views.generic.edit import FormView
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
+from django.contrib.postgres.search import SearchVector, SearchQuery
+
 
 @method_decorator(login_required, name='dispatch')
 class AttendanceCreateView(FormView):
@@ -45,6 +47,8 @@ class AttendanceCreateView(FormView):
         form = AttendanceForm(request.POST)
         if form.is_valid():
             trainee = Trainee.objects.get(reference=form.cleaned_data['reference'])
+            trainee_by_name = Trainee.objects.annotate(search=SearchVector('name'),
+                                                       ).filter(search=form.cleaned_data['reference'])
             try:
                 attendance = AttendanceRecord.objects.create(trainee=trainee, status=form.cleaned_data['status'], group=trainee.group)
                 attendance.save()
@@ -52,7 +56,8 @@ class AttendanceCreateView(FormView):
                     'name': attendance.trainee.name,
                     'group': attendance.trainee.group,
                     'status': attendance.status,
-                    'reference': form.cleaned_data['reference']
+                    'reference': form.cleaned_data['reference'],
+                    'trainee_pos': trainee_by_name.reference
                 }
                 template = loader.get_template('showAttendance.html')
                 return HttpResponse(template.render(context, request))
