@@ -139,7 +139,7 @@ class Trainee(models.Model):
         if self.level != self.group.level:
             raise ValidationError('Chosen group\'s level doesn\'t match with trainee level')
         if self.group.capacity:
-            if self.group.capacity <= self.group.trainees.all().count():
+            if self.group.capacity < self.group.trainees.all().count():
                 raise ValidationError('Chosen group\'s capacity is full')
 
     # def __unicode__(self):
