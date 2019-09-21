@@ -133,11 +133,15 @@ class Trainee(models.Model):
             self.level = self.group.level
             while Trainee.objects.filter(reference=self.reference).exists():
                 self.reference = id_generator()
+        if (not self.level) and self.group:
+            self.level = self.group
         super(Trainee, self).save(*args, **kwargs)
 
     def clean(self):
-        if self.level != self.group.level:
-            raise ValidationError('Chosen group\'s level doesn\'t match with trainee level')
+        if self.level:
+            if self.group:
+                if self.level != self.group.level:
+                    raise ValidationError('Chosen group\'s level doesn\'t match with trainee level')
         if self.group.capacity:
             if self.group.capacity < self.group.trainees.all().count():
                 raise ValidationError('Chosen group\'s capacity is full')
