@@ -3,7 +3,7 @@ from django import forms
 from .models import *
 from datetime import date
 from django.contrib.auth.models import User
-
+from django.contrib.postgres.search import SearchVector, SearchQuery
 from django.utils.translation import ugettext_lazy as _
 
 STATUS_CHOICES= [
@@ -23,9 +23,11 @@ class AttendanceForm(forms.Form):
 
     def clean_reference(self):
         reference = self.cleaned_data['reference']
-        trainee = Trainee.objects.filter(reference=reference)
-
-        if not trainee.exists():
+        trainee_by_ref = Trainee.objects.filter(reference=reference)
+        trainee_by_name = Trainee.objects.annotate(search=SearchVector('name'),
+                            ).filter(search=reference)
+        import pdb;pdb.set_trace()
+        if not trainee_by_ref.exists():
             raise forms.ValidationError("This reference code doesn't exist. Please supply a different one.")
 
         return reference
