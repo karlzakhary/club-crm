@@ -26,7 +26,7 @@ class AttendanceForm(forms.Form):
         trainee_by_ref = Trainee.objects.filter(reference=reference)
         trainee_by_name = Trainee.objects.annotate(search=SearchVector('name'),
                             ).filter(search=reference)
-        import pdb;pdb.set_trace()
+        import rpdb;rpdb.set_trace()
         if not trainee_by_ref.exists():
             raise forms.ValidationError("This reference code doesn't exist. Please supply a different one.")
 
