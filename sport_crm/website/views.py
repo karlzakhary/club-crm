@@ -9,12 +9,11 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import *
 from .forms import AttendanceForm
 from django.shortcuts import render
-from django.views.generic.edit import CreateView
 from django.db import IntegrityError
 from django.views.generic.edit import FormView
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
-from django.contrib.postgres.search import SearchVector, SearchQuery
+from django.db.models import Q
 
 
 @method_decorator(login_required, name='dispatch')
@@ -46,18 +45,18 @@ class AttendanceCreateView(FormView):
     def post(self, request, *args, **kwargs):
         form = AttendanceForm(request.POST)
         if form.is_valid():
-            trainee = Trainee.objects.get(reference=form.cleaned_data['reference'])
-            trainee_by_name = Trainee.objects.annotate(search=SearchVector('name'),
-                                                       ).filter(search=form.cleaned_data['reference'])
+            trainee = Trainee.objects.get(Q(reference=form.cleaned_data['reference']) | Q(name__contains=form.cleaned_data['reference']))
+
             try:
-                attendance = AttendanceRecord.objects.create(trainee=trainee, status=form.cleaned_data['status'], group=trainee.group)
+                # import pdb;pdb.set_trace()
+                attendance = AttendanceRecord.objects.create(trainee=trainee, status=form.cleaned_data['status'],
+                                                             group=trainee.group)
                 attendance.save()
                 context = {
                     'name': attendance.trainee.name,
                     'group': attendance.trainee.group,
                     'status': attendance.status,
                     'reference': form.cleaned_data['reference'],
-                    'trainee_pos': trainee_by_name.reference
                 }
                 template = loader.get_template('showAttendance.html')
                 return HttpResponse(template.render(context, request))

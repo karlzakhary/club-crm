@@ -23,10 +23,11 @@ class AttendanceForm(forms.Form):
     def clean_reference(self):
         reference = self.cleaned_data['reference']
         trainee_by_ref = Trainee.objects.filter(reference=reference)
-
+        trainee_by_name = Trainee.objects.filter(name__contains=reference)
         if not trainee_by_ref.exists():
-            raise forms.ValidationError("This reference code doesn't exist. Please supply a different one.")
-
+            if not trainee_by_name.exists():
+                raise forms.ValidationError("This reference code/name doesn't exist. Please supply a different one.")
+        # import pdb;pdb.set_trace()
         return reference
 
 
