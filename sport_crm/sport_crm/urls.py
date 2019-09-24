@@ -18,12 +18,13 @@ from django.contrib import admin
 from django.conf.urls.static import static
 from django.conf import settings
 import website.views as views
+from django.urls import path
 
 from rest_framework import routers
 from django.contrib.auth.decorators import login_required
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
+    url(r'^admin', admin.site.urls),
     url(r'^api/', include('website.urls')),
     # url(r'^attendance/', views.attendance),
     url('', login_required(views.AttendanceCreateView.as_view()), name='create'),
